@@ -4,6 +4,7 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.io.UnsupportedEncodingException;
 import javax.annotation.Nullable;
 
 import android.app.Activity;

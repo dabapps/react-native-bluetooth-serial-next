@@ -1,6 +1,7 @@
 const ReactNative = require("react-native");
 const React = require("react");
 const { Buffer } = require("buffer");
+const { decode } = require("base-64");
 
 const { NativeModules, DeviceEventEmitter } = ReactNative;
 const { BluetoothSerial } = NativeModules;
@@ -271,8 +272,17 @@ BluetoothSerial.once = (eventName, handler, context) =>
  * @param context - Optional context object to use when invoking the
  *   listener
  */
-BluetoothSerial.addListener = (eventName, handler, context) =>
-  DeviceEventEmitter.addListener(eventName, handler, context);
+BluetoothSerial.addListener = (eventName, handler, context) => {
+  if (eventName === 'data' || eventName === 'read') {
+    return DeviceEventEmitter.addListener(eventName, (event) => {
+      return handler({
+        id: event.id,
+        data: decode(event.data)
+      });
+    }, context);
+  }
+  return DeviceEventEmitter.addListener(eventName, handler, context);
+}
 
 /**
  * Attach listener to a certain event name.

@@ -4,6 +4,7 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.io.UnsupportedEncodingException;
 import javax.annotation.Nullable;
 
 import android.app.Activity;
@@ -572,7 +573,7 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
 
     /**
      * Handle connection success
-     * 
+     *
      * @param msg             Additional message
      * @param connectedDevice Connected device
      */
@@ -605,7 +606,7 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
 
     /**
      * handle connection failure
-     * 
+     *
      * @param msg             Additional message
      * @param connectedDevice Connected device
      */
@@ -631,7 +632,7 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
 
     /**
      * Handle lost connection
-     * 
+     *
      * @param msg             Message
      * @param connectedDevice Connected device
      */
@@ -648,7 +649,7 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
 
     /**
      * Handle error
-     * 
+     *
      * @param e Exception
      */
     void onError(Exception e) {
@@ -677,16 +678,24 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
         }
 
         String completeData = readUntil(id, delimiter);
-
         if (completeData != null && completeData.length() > 0) {
+            String encodedData;
+            try {
+                encodedData = Base64.encodeToString(completeData.getBytes("ISO-8859-1"), Base64.DEFAULT);
+            } catch (UnsupportedEncodingException e) {
+                // Scream
+                this.onError(e);
+                return;
+            }
+
             WritableMap readParams = Arguments.createMap();
             readParams.putString("id", id);
-            readParams.putString("data", completeData);
+            readParams.putString("data", encodedData);
             sendEvent(DEVICE_READ, readParams);
 
             WritableMap dataParams = Arguments.createMap();
             dataParams.putString("id", id);
-            dataParams.putString("data", completeData);
+            dataParams.putString("data", encodedData);
             sendEvent(DATA_READ, dataParams);
         }
     }
@@ -717,7 +726,7 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
 
     /**
      * Check if is api level 19 or above
-     * 
+     *
      * @return is above api level 19
      */
     private boolean isKitKatOrAbove() {
@@ -726,7 +735,7 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
 
     /**
      * Send event to javascript
-     * 
+     *
      * @param eventName Name of the event
      * @param params    Additional params
      */
@@ -740,7 +749,7 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
 
     /**
      * Convert BluetoothDevice into WritableMap
-     * 
+     *
      * @param device Bluetooth device
      */
     private WritableMap deviceToWritableMap(BluetoothDevice device) {
@@ -764,7 +773,7 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
 
     /**
      * Pair device before kitkat
-     * 
+     *
      * @param device Device
      */
     private void pairDevice(BluetoothDevice device) {
@@ -786,7 +795,7 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
 
     /**
      * Unpair device
-     * 
+     *
      * @param device Device
      */
     private void unpairDevice(BluetoothDevice device) {
@@ -808,7 +817,7 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
 
     /**
      * Return reject promise for null bluetooth adapter
-     * 
+     *
      * @param promise
      */
     private void rejectNullBluetoothAdapter(Promise promise) {
@@ -820,7 +829,7 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
 
     /**
      * Register receiver for device pairing
-     * 
+     *
      * @param rawDevice     Bluetooth device
      * @param requiredState State that we require
      */
